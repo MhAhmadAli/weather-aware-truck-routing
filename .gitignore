@@ -9,9 +9,14 @@ db.sqlite3
 node_modules/
 dist/
 
+# Deploy tooling
+.vercel/
+
 # Environment and editor
 .env
 .env.*
 .DS_Store
 .vscode/
 .idea/
+.vercel
+.env*

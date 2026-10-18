@@ -1,5 +1,5 @@
 export async function planTrip(request) {
-  const response = await fetch("/api/plan/", {
+  const response = await fetch("/api/plan", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),

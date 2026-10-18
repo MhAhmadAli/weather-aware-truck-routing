@@ -1,5 +1,7 @@
 # Weather-Aware Truck Routing
 
+**Live demo:** https://weather-aware-truck-routing-jade.vercel.app
+
 A React + Django app that helps a truck driver pick the safest route. Given an origin, destination, departure time and load weight, it builds three route options, forecasts the weather at checkpoints along each one for the time the truck will actually be there, scores the risk, and recommends a route.
 
 All third-party services are free and need no API keys:
@@ -20,7 +22,7 @@ Requirements: Python 3.11+ and Node 18+.
 cd backend
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install -r ../requirements.txt
 python manage.py runserver
 
 # Frontend (http://localhost:5173), in a second terminal
@@ -53,6 +55,14 @@ All optional, via environment variables:
 | `NOMINATIM_URL` | `https://nominatim.openstreetmap.org/search` |
 | `OPEN_METEO_URL` | `https://api.open-meteo.com/v1/forecast` |
 | `HTTP_USER_AGENT` | `weather-aware-truck-routing/1.0` (Nominatim requires an identifying agent) |
+
+### Deploying
+
+The app is hosted on [Vercel](https://vercel.com) as a single project: the React build is served as static files, and `api/plan.py` runs the Django app as a Python function at `/api/plan`. The settings live in `vercel.json`, and Python dependencies come from the root `requirements.txt`.
+
+```bash
+vercel deploy --prod
+```
 
 ## How it works
 
@@ -97,7 +107,7 @@ Step 1 is an addition to the spec's list: a route with No Travel miles should ne
 
 ## API
 
-`POST /api/plan/`
+`POST /api/plan`
 
 ```json
 {
@@ -128,6 +138,9 @@ Errors return `{"detail": "..."}`: 400 for problems the user can fix (unknown pl
 ## Project structure
 
 ```
+api/plan.py          Vercel entry point for the Django API
+vercel.json          Vercel build and function settings
+requirements.txt     Python dependencies
 backend/
   config/            Django settings and URL root
   routing/
@@ -136,7 +149,7 @@ backend/
     clients.py       Nominatim, OSRM and Open-Meteo clients
     planner.py       Route options, ETAs, weather, scoring, heatmap
     serializers.py   Request validation
-    views.py         POST /api/plan/
+    views.py         POST /api/plan
     tests/
 frontend/
   src/
