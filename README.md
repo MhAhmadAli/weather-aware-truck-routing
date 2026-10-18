@@ -2,6 +2,8 @@
 
 **Live demo:** https://weather-aware-truck-routing-jade.vercel.app
 
+**Demo video (7 min, narrated):** [docs/weather-aware-truck-routing-demo.mp4](docs/weather-aware-truck-routing-demo.mp4). It covers planning a trip, a storm scenario where the fastest route isn't the safest, the core code, and the tests.
+
 A React + Django app that helps a truck driver pick the safest route. Given an origin, destination, departure time and load weight, it builds three route options, forecasts the weather at checkpoints along each one for the time the truck will actually be there, scores the risk, and recommends a route.
 
 All third-party services are free and need no API keys:
