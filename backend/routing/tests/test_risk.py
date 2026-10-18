@@ -1,6 +1,6 @@
 from django.test import SimpleTestCase
 
-from routing.risk import Risk, assess, classify_rain, classify_snow, classify_wind
+from routing.risk import Risk, assess, classify_rain, classify_snow, classify_wind, risk_score
 
 
 class ThresholdTests(SimpleTestCase):
@@ -49,3 +49,17 @@ class LoadRuleTests(SimpleTestCase):
 
     def test_low_has_no_factors(self) -> None:
         self.assertEqual(assess(5, 0, 0, load_lb=80_000).factors, ())
+
+
+class RiskScoreTests(SimpleTestCase):
+    def test_score_rises_within_the_low_band(self) -> None:
+        self.assertEqual(risk_score(0, 0, 0, load_lb=0), 0.0)
+        self.assertAlmostEqual(risk_score(20, 0, 0, load_lb=0), 0.8)
+        self.assertAlmostEqual(risk_score(0, 0.05, 0, load_lb=0), 0.5)
+
+    def test_whole_part_always_matches_the_level(self) -> None:
+        cases = [(30, 0, 0, 0), (0, 1.0, 0, 0), (0, 0, 3.0, 0), (50, 0, 0, 35_000), (40, 0, 0, 45_000), (60, 0, 0, 0)]
+        for wind, rain, snow, load in cases:
+            with self.subTest(wind=wind, rain=rain, snow=snow, load=load):
+                level = assess(wind, rain, snow, load).level
+                self.assertEqual(int(risk_score(wind, rain, snow, load)), level)

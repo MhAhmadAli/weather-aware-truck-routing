@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { CircleMarker, MapContainer, Pane, Polyline, Popup, Rectangle, TileLayer, Tooltip, useMap } from "react-leaflet";
-import { RISK_LEVELS, formatDuration, formatTime, riskColor, riskLabel } from "../risk";
+import { RISK_LEVELS, formatDuration, formatTime, riskColor, riskLabel, scoreColor, scoreOpacity } from "../risk";
 import RiskBadge from "./RiskBadge";
 
 const ROUTE_COLOR = "#1d4ed8";
@@ -99,6 +99,7 @@ function HeatmapCells({ heatmap, hour }) {
   const half = heatmap.step_deg / 2;
   return heatmap.cells.map((cell) => {
     const risk = cell.risk[hour];
+    const score = cell.score[hour];
     return (
       <Rectangle
         key={`${cell.lat},${cell.lon}`}
@@ -106,7 +107,7 @@ function HeatmapCells({ heatmap, hour }) {
           [cell.lat - half, cell.lon - half],
           [cell.lat + half, cell.lon + half],
         ]}
-        pathOptions={{ stroke: false, fillColor: riskColor(risk), fillOpacity: risk === 0 ? 0.15 : 0.45 }}
+        pathOptions={{ stroke: false, fillColor: scoreColor(score), fillOpacity: scoreOpacity(score) }}
       >
         <Tooltip sticky>
           {riskLabel(risk)} · wind {cell.wind_mph[hour]} mph · rain {cell.rain_in_hr[hour]} in/hr · snow{" "}
@@ -137,6 +138,7 @@ function HeatmapControls({ heatmap, hour, onHourChange, show, onShowChange }) {
       <div className="small">
         Departure +{hour}h · {formatTime(time)}
       </div>
+      <div className="small muted">Shading deepens as wind, rain or snow approach the next risk band.</div>
     </div>
   );
 }

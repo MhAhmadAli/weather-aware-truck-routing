@@ -62,6 +62,34 @@ def apply_load_rules(wind_mph: float, load_lb: float, wind_risk: Risk) -> Risk:
     return wind_risk
 
 
+# Lower bound of each band, Low through No Travel, matching the classifiers above.
+WIND_BANDS_MPH = (0.0, 25.0, 35.0, 45.0, 55.0)
+RAIN_BANDS_IN_HR = (0.0, 0.10, 0.25, 0.50, 1.00)
+SNOW_BANDS_IN_HR = (0.0, 0.5, 1.0, 2.0, 3.0)
+
+
+def _band_position(value: float, bands: tuple[float, ...]) -> float:
+    """Position on the 0–4 scale: n at the start of level n, rising linearly through the band."""
+    for level in range(len(bands) - 1):
+        low, high = bands[level], bands[level + 1]
+        if value < high:
+            return level + max(value - low, 0.0) / (high - low)
+    return float(Risk.NO_TRAVEL)
+
+
+def risk_score(wind_mph: float, rain_in_per_hr: float, snow_in_per_hr: float, load_lb: float) -> float:
+    """Continuous 0–4 score for map shading. Its whole part always equals the risk level."""
+    level = assess(wind_mph, rain_in_per_hr, snow_in_per_hr, load_lb).level
+    continuous = max(
+        _band_position(wind_mph, WIND_BANDS_MPH),
+        _band_position(rain_in_per_hr, RAIN_BANDS_IN_HR),
+        _band_position(snow_in_per_hr, SNOW_BANDS_IN_HR),
+    )
+    # Clamp into the level's band: load rules can raise the level, and top-of-band values
+    # (1.00 in/hr rain is still Severe) must not spill into the next one.
+    return min(max(continuous, float(level)), level + 0.99)
+
+
 @dataclass(frozen=True)
 class Assessment:
     level: Risk

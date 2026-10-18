@@ -9,7 +9,7 @@ from . import clients
 from .clients import RawRoute
 from .errors import ExternalServiceError, PlanningError
 from .geo import LatLon, cumulative_miles, haversine_mi, interpolate, sample_along
-from .risk import Risk, assess
+from .risk import Risk, assess, risk_score
 
 ROUTE_COUNT = 3
 ROUTE_LABELS = "ABC"
@@ -255,15 +255,24 @@ def build_heatmap(options: list[RouteOption], load_lb: float, start: datetime, w
     series = clients.fetch_hourly_weather(cells, start, start + timedelta(hours=hours))
     out_cells = []
     for (lat, lon), weather in zip(cells, series, strict=True):
-        risk, wind, rain, snow = [], [], [], []
+        risk, score, wind, rain, snow = [], [], [], [], []
         for hour in range(hours + 1):
             w, r, s = weather.conditions_at(start + timedelta(hours=hour))
             risk.append(int(assess(w, r, s, load_lb).level))
+            score.append(round(risk_score(w, r, s, load_lb), 2))
             wind.append(round(w, 1))
             rain.append(round(r, 2))
             snow.append(round(s, 2))
         out_cells.append(
-            {"lat": round(lat, 4), "lon": round(lon, 4), "risk": risk, "wind_mph": wind, "rain_in_hr": rain, "snow_in_hr": snow}
+            {
+                "lat": round(lat, 4),
+                "lon": round(lon, 4),
+                "risk": risk,
+                "score": score,
+                "wind_mph": wind,
+                "rain_in_hr": rain,
+                "snow_in_hr": snow,
+            }
         )
     return {"start": start.isoformat(), "hours": hours, "step_deg": round(step, 4), "cells": out_cells}
 
